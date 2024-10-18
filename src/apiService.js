@@ -1,4 +1,3 @@
-// src/apiService.js
 import axios from "axios";
 
 const apiClient = axios.create({
@@ -6,6 +5,15 @@ const apiClient = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+});
+
+// Add a request interceptor to include token in headers
+apiClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers["Authorization"] = `Bearer ${token}`;
+  }
+  return config;
 });
 
 export default {
@@ -22,6 +30,7 @@ export default {
       throw error.response ? error.response.data : new Error("Login failed");
     }
   },
+
   async register(name, email, password) {
     const payload = {
       name: name,
@@ -33,10 +42,11 @@ export default {
       return response.data;
     } catch (error) {
       throw error.response
-        ? error.response.data
-        : new Error("Registration failed");
+          ? error.response.data
+          : new Error("Registration failed");
     }
   },
+
   async logout() {
     try {
       await apiClient.post("/logout");
@@ -45,4 +55,58 @@ export default {
       throw error.response ? error.response.data : new Error("Logout failed");
     }
   },
+
+  async createTask(taskData) {
+    try {
+      const response = await apiClient.post("/tasks/store", taskData);
+      return response.data;
+    } catch (error) {
+      throw error.response
+          ? error.response.data
+          : new Error("Failed to create task");
+    }
+  },
+
+  async getTasks() {
+    try {
+      const response = await apiClient.get("/tasks");
+      return response.data;
+    } catch (error) {
+      throw error.response
+          ? error.response.data
+          : new Error("Failed to retrieve tasks");
+    }
+  },
+
+  // Thêm API để lấy danh sách người dùng
+  async getUsers() {
+    try {
+      const response = await apiClient.get("/users");
+      return response.data;
+    } catch (error) {
+      throw error.response
+          ? error.response.data
+          : new Error("Failed to retrieve users");
+    }
+  },
+  async getAllTasks() {
+    try {
+      const response = await apiClient.get("/tasks/getAllTasks");
+      return response.data;
+    } catch (error) {
+      throw error.response
+          ? error.response.data
+          : new Error("Failed to retrieve tasks");
+    }
+  },
+  async getTaskById(id) {
+    try {
+      const response = await apiClient.get(`/tasks/${id}`);
+      return response.data;
+    } catch (error) {
+      throw error.response
+          ? error.response.data
+          : new Error("Failed to retrieve task");
+    }
+  }
 };

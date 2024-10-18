@@ -3,8 +3,10 @@
         <AppSidebar />
         <div class="main">
             <AppNavbar />
-            <!-- Nội dung động sẽ hiển thị tại đây -->
-            <router-view />
+            <div class="content">
+                <!-- Sử dụng slot để hiển thị nội dung động -->
+                <slot></slot>
+            </div>
             <AppFooter />
         </div>
     </div>
@@ -16,7 +18,7 @@
     import AppFooter from './AppFooter.vue';
 
     export default {
-        name: "UserDashboard",
+        name: "DefaultLayout",
         components: {
             AppSidebar,
             AppNavbar,
@@ -24,3 +26,7 @@
         }
     };
 </script>
+
+<style scoped>
+    /* Add your custom styles here */
+</style>

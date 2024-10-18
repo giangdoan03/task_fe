@@ -1,6 +1,10 @@
 import { createRouter, createWebHistory } from "vue-router";
 import LoginForm from "@/components/LoginForm.vue";
 import UserDashboard from "@/components/UserDashboard.vue";
+import MainContent from "@/components/MainContent.vue";
+import TaskComponent from "@/components/TaskComponent.vue";
+import NewTaskComponent from '@/components/NewTaskComponent.vue';
+import TaskDetailComponent from '@/components/TaskDetailComponent.vue';
 
 const routes = [
   {
@@ -12,7 +16,33 @@ const routes = [
     path: "/dashboard",
     name: "Dashboard",
     component: UserDashboard,
-    meta: { requiresAuth: true }, // Đặt meta requiresAuth để chỉ định cần xác thực
+    meta: { requiresAuth: true },
+    children: [
+      {
+        path: "", // Đường dẫn mặc định khi vào "/dashboard"
+        name: "MainContent",
+        component: MainContent,
+      },
+    ],
+  },
+  {
+    path: "/tasks", // Route riêng biệt cho TaskComponent
+    name: "Tasks",
+    component: TaskComponent,
+    meta: { requiresAuth: true }, // Yêu cầu xác thực cho tasks
+  },
+  {
+    path: '/tasks/new', // Đường dẫn cho NewTaskComponent
+    name: 'NewTask',
+    component: NewTaskComponent,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/tasks/:id', // Route cho chi tiết công việc
+    name: 'TaskDetail',
+    component: TaskDetailComponent,
+    meta: { requiresAuth: true },
+    props: true // Đảm bảo route nhận được `id` từ URL
   },
 ];
 
