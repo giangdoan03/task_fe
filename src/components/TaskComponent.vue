@@ -1,10 +1,10 @@
 <template>
     <DefaultLayout>
-        <div>
-            <h3>Danh sách công việc</h3>
-            <!-- Bảng hiển thị danh sách công việc -->
-            <table class="table">
-                <thead>
+        <div class="container mt-5">
+            <h3 class="mb-4">Danh sách công việc</h3>
+            <!-- Bảng hiển thị danh sách công việc với Bootstrap -->
+            <table class="table table-hover table-bordered table-striped">
+                <thead class="thead-light">
                 <tr>
                     <th>ID</th>
                     <th>Tiêu đề</th>
@@ -48,7 +48,7 @@
         async mounted() {
             try {
                 // Gọi API từ apiService để lấy danh sách công việc
-                const tasks = await apiService.getAllTasks();
+                const tasks = await apiService.getTasks();
                 this.tasks = tasks; // Lưu danh sách công việc vào mảng tasks
             } catch (error) {
                 console.error("Lỗi khi tải danh sách công việc:", error);
@@ -63,23 +63,5 @@
 </script>
 
 <style scoped>
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        cursor: pointer;
-    }
-
-    th, td {
-        padding: 12px;
-        border: 1px solid #ddd;
-        text-align: left;
-    }
-
-    th {
-        background-color: #f4f4f4;
-    }
-
-    tr:hover {
-        background-color: #f1f1f1;
-    }
+/* Không cần thêm quá nhiều CSS vì đã có các lớp của Bootstrap */
 </style>
