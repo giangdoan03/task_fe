@@ -42,6 +42,18 @@
                     </ul>
                 </li>
 
+                <li class="sidebar-item">
+                    <router-link
+                            class="sidebar-link"
+                            to="/users"
+                            active-class="active"
+                            @click="closeSubMenuIfNeeded('users')"
+                    >
+                        <i class="align-middle" data-feather="user"></i>
+                        <span class="align-middle">Thành viên</span>
+                    </router-link>
+                </li>
+
                 <!-- Add other sidebar links here -->
             </ul>
         </div>

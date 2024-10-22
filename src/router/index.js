@@ -5,6 +5,7 @@ import MainContent from "@/components/MainContent.vue";
 import TaskComponent from "@/components/TaskComponent.vue";
 import NewTaskComponent from '@/components/NewTaskComponent.vue';
 import TaskDetailComponent from '@/components/TaskDetailComponent.vue';
+import UserComponent from "@/components/UserComponent.vue";
 
 const routes = [
 	{
@@ -43,6 +44,12 @@ const routes = [
 		component: TaskDetailComponent,
 		meta: { requiresAuth: true },
 		props: true // Đảm bảo route nhận được `id` từ URL
+	},
+	{
+		path: "/users", // Route riêng biệt cho TaskComponent
+		name: "Users",
+		component: UserComponent,
+		meta: { requiresAuth: true }, // Yêu cầu xác thực cho tasks
 	},
 	
 ];

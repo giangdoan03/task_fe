@@ -90,6 +90,27 @@ export default {
                 : new Error("Failed to retrieve users");
         }
     },
+
+    // Tạo người dùng mới
+    async createUser(userData) {
+        try {
+            const response = await apiClient.post("/users/store", userData);
+            return response.data;
+        } catch (error) {
+            throw error.response ? error.response.data : new Error("Failed to create user");
+        }
+    },
+
+    // API để xóa người dùng
+    async deleteUser(userId) {
+        try {
+            const response = await apiClient.post("/users/delete", { id: userId });
+            return response.data;
+        } catch (error) {
+            throw error.response ? error.response.data : new Error("Failed to delete user");
+        }
+    },
+
     async getTaskById(id) {
         try {
             const response = await apiClient.get(`/tasks/${id}`);
@@ -128,5 +149,5 @@ export default {
             throw error.response ? error.response.data : new Error("Failed to delete subtask(s)");
         }
     }
-    
+
 };
