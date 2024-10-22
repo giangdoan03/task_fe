@@ -1,6 +1,6 @@
 <template>
     <DefaultLayout>
-        <div class="container mt-5">
+        <div class="container">
             <h3 class="mb-4">Danh sách công việc</h3>
             <!-- Bảng hiển thị danh sách công việc với Bootstrap -->
             <table class="table table-hover table-bordered table-striped">
@@ -12,7 +12,7 @@
                     <th>Người được giao</th>
                     <th>Ngày hết hạn</th>
                     <th>Ngày tạo</th>
-                    <th>% Hoàn thành</th>
+                    <th>Hoàn thành</th>
                 </tr>
                 </thead>
                 <tbody>

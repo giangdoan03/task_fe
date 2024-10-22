@@ -99,5 +99,34 @@ export default {
                 ? error.response.data
                 : new Error("Failed to retrieve task");
         }
+    },
+
+    async updateSubtaskCompletion(payload) {
+        try {
+            const response = await apiClient.post("/tasks/updateSubTaskCompletion", payload);
+            return response.data;
+        } catch (error) {
+            throw error.response ? error.response.data : new Error("Failed to update subtask");
+        }
+    },
+
+    async createSubtask(payload) {
+        try {
+            const response = await apiClient.post("/tasks/storeSubTask", payload);
+            return response.data;
+        } catch (error) {
+            throw error.response ? error.response.data : new Error("Failed to create subtask");
+        }
+    },
+
+    // Xóa subtasks (một hoặc nhiều)
+    async deleteSubTask(payload) {
+        try {
+            const response = await apiClient.post("/subtasks/delete", payload);
+            return response.data;
+        } catch (error) {
+            throw error.response ? error.response.data : new Error("Failed to delete subtask(s)");
+        }
     }
+    
 };

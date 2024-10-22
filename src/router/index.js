@@ -44,6 +44,7 @@ const routes = [
 		meta: { requiresAuth: true },
 		props: true // Đảm bảo route nhận được `id` từ URL
 	},
+	
 ];
 
 const router = createRouter({
