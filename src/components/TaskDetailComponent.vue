@@ -32,22 +32,24 @@
                 </div>
             </div>
 
-            <!-- Hiển thị danh sách sub-tasks nếu có -->
-            <div v-if="task.subtasks && task.subtasks.length > 0" class="mt-4">
+            <!-- Vẫn hiển thị nút tạo subtask, ngay cả khi không có subtasks -->
+            <div class="mt-4">
                 <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="card-title">Danh sách công việc con</h5>
-                        <!-- Nút tạo subtask -->
-                        <button class="btn btn-primary" @click="showSubtaskForm = !showSubtaskForm">Tạo subtask</button>
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title">Danh sách công việc con</h5>
+                    <!-- Nút tạo subtask -->
+                    <button class="btn btn-primary" @click="showSubtaskForm = !showSubtaskForm">Tạo subtask</button>
+                </div>
+                <div class="card-body">
+                    <!-- Hiển thị form tạo subtask -->
+                    <div v-if="showSubtaskForm" class="mb-4">
+                        <input v-model="newSubtaskTitle" type="text" placeholder="Tiêu đề công việc con" class="form-control mb-2" />
+                        <textarea v-model="newSubtaskDescription" placeholder="Mô tả công việc con" class="form-control mb-2"></textarea>
+                        <button @click="createSubtask" class="btn btn-success">Lưu</button>
                     </div>
-                    <div class="card-body">
-                        <!-- Hiển thị form tạo subtask -->
-                        <div v-if="showSubtaskForm" class="mb-4">
-                            <input v-model="newSubtaskTitle" type="text" placeholder="Tiêu đề công việc con" class="form-control mb-2" />
-                            <textarea v-model="newSubtaskDescription" placeholder="Mô tả công việc con" class="form-control mb-2"></textarea>
-                            <button @click="createSubtask" class="btn btn-success">Lưu</button>
-                        </div>
 
+                    <!-- Hiển thị danh sách subtasks nếu có subtasks -->
+                    <div v-if="task.subtasks && task.subtasks.length > 0">
                         <!-- Checkbox chọn tất cả subtasks -->
                         <div class="form-check mb-2">
                             <input
@@ -73,7 +75,21 @@
                                         @change="toggleSubTaskSelection"
                                     />
                                     <div>
-                                        <strong>Tiêu đề:</strong> {{ subTask.title }} <br>
+                                        <div v-if="subTask.id === editingSubtaskId">
+                                            <!-- Khi click vào tiêu đề, hiển thị input -->
+                                            <input
+                                                type="text"
+                                                v-model="editableTitle"
+                                                @keyup.enter="saveTitle(subTask)"
+                                                @blur="saveTitle(subTask)"
+                                                class="form-control"
+                                                autofocus
+                                            />
+                                        </div>
+                                        <div v-else @click="editTitle(subTask)">
+                                            <!-- Khi chưa chỉnh sửa, hiển thị tiêu đề dưới dạng text -->
+                                            <strong>Tiêu đề:</strong> {{ subTask.title }} <br>
+                                        </div>
                                         <strong>Hoàn thành:</strong> {{ subTask.is_completed ? 'Đã hoàn thành' : 'Chưa hoàn thành' }}
                                     </div>
                                 </div>
@@ -89,24 +105,31 @@
                         <!-- Nút xóa tất cả subtasks được chọn -->
                         <button class="btn btn-danger mt-3" @click="deleteSelectedSubTasks" v-if="selectedSubTasks.length > 0">Xóa các công việc đã chọn</button>
                     </div>
-                </div>
 
-                <!-- Tổng progress bar -->
-                <div class="card mt-4">
-                    <div class="card-header">
-                        <h5 class="card-title">Tổng tiến độ công việc con</h5>
+                    <!-- Hiển thị khi không có subtasks -->
+                    <div v-else class="text-center">
+                        <p>Không có công việc con nào.</p>
                     </div>
-                    <div class="card-body">
-                        <div class="progress">
-                            <div
-                                class="progress-bar bg-success"
-                                role="progressbar"
-                                :style="{ width: totalProgress + '%' }"
-                                :aria-valuenow="totalProgress"
-                                aria-valuemin="0"
-                                aria-valuemax="100">
-                                {{ totalProgress }}%
-                            </div>
+                </div>
+            </div>
+
+            </div>
+
+            <!-- Tổng progress bar -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="card-title">Tổng tiến độ công việc con</h5>
+                </div>
+                <div class="card-body">
+                    <div class="progress">
+                        <div
+                            class="progress-bar bg-success"
+                            role="progressbar"
+                            :style="{ width: totalProgress + '%' }"
+                            :aria-valuenow="totalProgress"
+                            aria-valuemin="0"
+                            aria-valuemax="100">
+                            {{ totalProgress }}%
                         </div>
                     </div>
                 </div>
@@ -121,6 +144,7 @@
         </div>
     </DefaultLayout>
 </template>
+
 
 <script>
     import DefaultLayout from './DefaultLayout.vue';
@@ -140,7 +164,9 @@
                 newSubtaskTitle: '', // Tiêu đề subtask mới
                 newSubtaskDescription: '',// Mô tả subtask mới,
                 selectAll: false, // Biến để quản lý trạng thái chọn tất cả
-                selectedSubTasks: [] // Mảng chứa các subtasks đã chọn
+                selectedSubTasks: [], // Mảng chứa các subtasks đã chọn
+                editingSubtaskId: null, // ID của subtask đang sửa
+                editableTitle: '', // Tiêu đề tạm thời khi sửa
             };
         },
         computed: {
@@ -169,23 +195,37 @@
                     this.isLoading = false;  // Kết thúc trạng thái loading
                 }
             },
-            // Hàm cập nhật trạng thái hoàn thành của subtask
+              // Hàm cập nhật trạng thái hoàn thành của subtask
             async updateCompletion(subTask) {
-                subTask.is_completed = subTask.is_completed ? 0 : 1; // Chuyển đổi trạng thái khi checkbox được click
+                subTask.is_completed = subTask.is_completed ? 0 : 1; // Toggle trạng thái khi checkbox được click
 
                 // Chuẩn bị dữ liệu để gửi đến API
                 const payload = {
                     id: subTask.id, // ID của subtask
                     is_completed: subTask.is_completed, // Trạng thái đã hoàn thành hoặc chưa
-                    task_id: this.task.id // ID của task lớn mà subtask thuộc về
+                    task_id: this.task.id, // ID của task lớn mà subtask thuộc về
+                    title: subTask.title, // Cập nhật tiêu đề subtask
+                    description: subTask.description // Cập nhật mô tả subtask
                 };
 
                 try {
                     // Gọi API để cập nhật trạng thái subtask trong backend
                     await apiService.updateSubtaskCompletion(payload);
+                    
+                    // Recalculate task completion percentage after subtask update
+                    this.calculateCompletionPercentage();
                 } catch (error) {
                     console.error('Lỗi khi cập nhật subtask:', error);
                     alert('Có lỗi xảy ra khi cập nhật công việc con.');
+                }
+            },
+            // Hàm để tính lại phần trăm hoàn thành của task dựa trên các subtasks
+            calculateCompletionPercentage() {
+                if (this.task && this.task.subtasks && this.task.subtasks.length > 0) {
+                    const completedSubtasks = this.task.subtasks.filter(subTask => subTask.is_completed === 1).length;
+                    this.task.completion_percentage = Math.round((completedSubtasks / this.task.subtasks.length) * 100);
+                } else {
+                    this.task.completion_percentage = 0;
                 }
             },
             // Hàm tạo subtask mới
@@ -257,7 +297,38 @@
                     console.error("Lỗi khi xóa các subtasks:", error);
                     alert("Có lỗi xảy ra khi xóa các công việc đã chọn.");
                 }
-            }
+            },
+              // Phương thức bắt đầu sửa tiêu đề
+            editTitle(subTask) {
+                this.editingSubtaskId = subTask.id; // Đặt ID subtask đang chỉnh sửa
+                this.editableTitle = subTask.title; // Đặt tiêu đề hiện tại vào editableTitle
+            },
+            // Phương thức để lưu tiêu đề sau khi nhấn Enter hoặc mất focus
+            async saveTitle(subTask) {
+                if (this.editableTitle.trim() === '') {
+                    alert('Tiêu đề không được để trống');
+                    return;
+                }
+
+                subTask.title = this.editableTitle; // Cập nhật tiêu đề subtask
+                this.editingSubtaskId = null; // Đặt lại để ẩn input
+
+                const payload = {
+                    id: subTask.id,
+                    is_completed: subTask.is_completed,
+                    task_id: this.task.id,
+                    title: subTask.title, // Tiêu đề đã chỉnh sửa
+                    description: subTask.description,
+                };
+
+                try {
+                    await apiService.updateSubtaskCompletion(payload);
+                    alert('Tiêu đề đã được cập nhật thành công.');
+                } catch (error) {
+                    console.error('Lỗi khi cập nhật tiêu đề subtask:', error);
+                    alert('Có lỗi xảy ra khi cập nhật tiêu đề.');
+                }
+            },
 
 
         }
