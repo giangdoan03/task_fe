@@ -30,7 +30,7 @@
 										</div>
 
 										<div class="text-center pt-1 mb-5 pb-1">
-											<button class="btn btn-primary btn-block fa-lg gradient-custom-2 mb-3"
+											<button class="btn btn-primary btn-block gradient-custom-2 mb-3"
 												type="submit">Log in</button>
 											<a class="text-muted" href="#!">Forgot password?</a>
 										</div>
@@ -67,17 +67,14 @@
 
 <script>
 import apiService from '../apiService';
+import { useUserStore } from '@/stores/userStore'; // Import store
 
 export default {
 	name: "LoginForm",
-	created() {
-		// Kiểm tra nếu đã có token trong localStorage
-		const isAuthenticated = !!localStorage.getItem("token");
+	setup() {
+		const userStore = useUserStore(); // Sử dụng Pinia store
 
-		// Nếu đã đăng nhập, điều hướng tới dashboard
-		if (isAuthenticated) {
-			this.$router.push("/dashboard");
-		}
+		return { userStore };
 	},
 	data() {
 		return {
@@ -89,24 +86,23 @@ export default {
 	methods: {
 		async handleLogin() {
 			try {
-				const data = await apiService.login(this.email, this.password);
+				const { user, token } = await apiService.login(this.email, this.password);
 
-				// Lưu token vào localStorage
-				localStorage.setItem('token', data.token);
+				// Lưu token và user vào store và localStorage
+				const userStore = useUserStore();
+				userStore.login(user, token);
+				localStorage.setItem('user', JSON.stringify(user)); // Lưu thông tin user vào localStorage
+				localStorage.setItem('token', token); // Lưu token vào localStorage
 
-				// Chuyển hướng tới dashboard sau khi đăng nhập thành công
-				this.$router.push("/dashboard");
-
+				// Chuyển hướng đến dashboard
+				this.$router.push('/dashboard');
 			} catch (error) {
-				this.error = error || 'An error occurred during login';
+				console.error("Login failed:", error);
 			}
 		}
-
 	}
-
 }
 </script>
-
 
 <style scoped>
 body {

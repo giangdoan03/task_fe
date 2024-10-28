@@ -18,18 +18,16 @@ apiClient.interceptors.request.use((config) => {
 });
 
 export default {
+    // apiService.js
     async login(email, password) {
-        const payload = {
-            email: email,
-            password: password,
-        };
+        const response = await apiClient.post('/login', { email, password });
 
-        try {
-            const response = await apiClient.post("/login", payload);
-            return response.data;
-        } catch (error) {
-            throw error.response ? error.response.data : new Error("Login failed");
-        }
+        console.log('response',response)
+        
+        // Kiểm tra phản hồi từ API
+        console.log('API response:', response.data);
+        
+        return response.data; // Đảm bảo rằng `response.data` chứa cả `user` và `token`
     },
 
     async register(name, email, password) {
@@ -147,6 +145,28 @@ export default {
             return response.data;
         } catch (error) {
             throw error.response ? error.response.data : new Error("Failed to delete subtask(s)");
+        }
+    },
+
+    // Lấy danh sách bình luận theo taskId
+    async getCommentsByTaskId(taskId) {
+        try {
+            const response = await apiClient.get(`/comments/task`, {
+                params: { task_id: taskId }
+            });
+            return response.data;
+        } catch (error) {
+            throw error.response ? error.response.data : new Error("Failed to fetch comments");
+        }
+    },
+
+    // Tạo một bình luận mới
+    async createComment(payload) {
+        try {
+            const response = await apiClient.post(`/comments/store`, payload);
+            return response.data;
+        } catch (error) {
+            throw error.response ? error.response.data : new Error("Failed to create comment");
         }
     }
 
