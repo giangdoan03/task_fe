@@ -1,4 +1,5 @@
 import axios from "axios";
+import router from "@/router"; // Import router để chuyển hướng khi cần
 
 const apiClient = axios.create({
     baseURL: "http://localhost/task_management",
@@ -8,7 +9,7 @@ const apiClient = axios.create({
     withCredentials: true,
 });
 
-// Add a request interceptor to include token in headers
+// Interceptor cho request để thêm token từ localStorage vào headers
 apiClient.interceptors.request.use((config) => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -17,41 +18,47 @@ apiClient.interceptors.request.use((config) => {
     return config;
 });
 
+// Interceptor cho response để kiểm tra lỗi xác thực và chuyển hướng khi cần
+apiClient.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response && error.response.status === 401) {
+            // Xóa token khỏi localStorage và chuyển hướng đến trang login
+            localStorage.removeItem("token");
+            router.push("/login");
+        }
+        return Promise.reject(
+            error.response ? error.response.data : new Error("Unexpected Error")
+        );
+    }
+);
+
 export default {
     // apiService.js
     async login(email, password) {
-        const response = await apiClient.post('/login', { email, password });
-
-        console.log('response',response)
-        
-        // Kiểm tra phản hồi từ API
-        console.log('API response:', response.data);
-        
-        return response.data; // Đảm bảo rằng `response.data` chứa cả `user` và `token`
+        try {
+            const response = await apiClient.post("/login", { email, password });
+            return response.data;
+        } catch (error) {
+            throw error || new Error("Login failed");
+        }
     },
 
     async register(name, email, password) {
-        const payload = {
-            name: name,
-            email: email,
-            password: password,
-        };
         try {
-            const response = await apiClient.post("/register", payload);
+            const response = await apiClient.post("/register", { name, email, password });
             return response.data;
         } catch (error) {
-            throw error.response
-                ? error.response.data
-                : new Error("Registration failed");
+            throw error || new Error("Registration failed");
         }
     },
 
     async logout() {
         try {
             await apiClient.post("/logout");
-            localStorage.removeItem("token");
+            localStorage.removeItem("token"); // Xóa token sau khi đăng xuất
         } catch (error) {
-            throw error.response ? error.response.data : new Error("Logout failed");
+            throw error || new Error("Logout failed");
         }
     },
 
@@ -60,9 +67,7 @@ export default {
             const response = await apiClient.post("/tasks/store", taskData);
             return response.data;
         } catch (error) {
-            throw error.response
-                ? error.response.data
-                : new Error("Failed to create task");
+            throw error || new Error("Failed to create task");
         }
     },
 
@@ -71,41 +76,34 @@ export default {
             const response = await apiClient.get("/tasks");
             return response.data;
         } catch (error) {
-            throw error.response
-                ? error.response.data
-                : new Error("Failed to retrieve tasks");
+            throw error || new Error("Failed to retrieve tasks");
         }
     },
 
-    // Thêm API để lấy danh sách người dùng
     async getUsers() {
         try {
             const response = await apiClient.get("/users");
             return response.data;
         } catch (error) {
-            throw error.response
-                ? error.response.data
-                : new Error("Failed to retrieve users");
+            throw error || new Error("Failed to retrieve users");
         }
     },
 
-    // Tạo người dùng mới
     async createUser(userData) {
         try {
             const response = await apiClient.post("/users/store", userData);
             return response.data;
         } catch (error) {
-            throw error.response ? error.response.data : new Error("Failed to create user");
+            throw error || new Error("Failed to create user");
         }
     },
 
-    // API để xóa người dùng
     async deleteUser(userId) {
         try {
             const response = await apiClient.post("/users/delete", { id: userId });
             return response.data;
         } catch (error) {
-            throw error.response ? error.response.data : new Error("Failed to delete user");
+            throw error || new Error("Failed to delete user");
         }
     },
 
@@ -114,9 +112,7 @@ export default {
             const response = await apiClient.get(`/tasks/${id}`);
             return response.data;
         } catch (error) {
-            throw error.response
-                ? error.response.data
-                : new Error("Failed to retrieve task");
+            throw error || new Error("Failed to retrieve task");
         }
     },
 
@@ -125,7 +121,7 @@ export default {
             const response = await apiClient.post("/tasks/updateSubTaskCompletion", payload);
             return response.data;
         } catch (error) {
-            throw error.response ? error.response.data : new Error("Failed to update subtask");
+            throw error || new Error("Failed to update subtask");
         }
     },
 
@@ -134,17 +130,16 @@ export default {
             const response = await apiClient.post("/tasks/storeSubTask", payload);
             return response.data;
         } catch (error) {
-            throw error.response ? error.response.data : new Error("Failed to create subtask");
+            throw error || new Error("Failed to create subtask");
         }
     },
 
-    // Xóa subtasks (một hoặc nhiều)
     async deleteSubTask(payload) {
         try {
             const response = await apiClient.post("/subtasks/delete", payload);
             return response.data;
         } catch (error) {
-            throw error.response ? error.response.data : new Error("Failed to delete subtask(s)");
+            throw error || new Error("Failed to delete subtask(s)");
         }
     },
 
@@ -169,5 +164,4 @@ export default {
             throw error.response ? error.response.data : new Error("Failed to create comment");
         }
     }
-
 };
