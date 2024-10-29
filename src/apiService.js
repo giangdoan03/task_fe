@@ -2,12 +2,13 @@ import axios from "axios";
 import router from "@/router"; // Import router để chuyển hướng khi cần
 
 const apiClient = axios.create({
-    baseURL: "http://localhost/task_management",
+    baseURL: process.env.VUE_APP_API_BASE_URL,
     headers: {
         "Content-Type": "application/json",
     },
     withCredentials: true,
 });
+
 
 // Interceptor cho request để thêm token từ localStorage vào headers
 apiClient.interceptors.request.use((config) => {
@@ -23,15 +24,15 @@ apiClient.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error.response && error.response.status === 401) {
-            // Xóa token khỏi localStorage và chuyển hướng đến trang login
-            localStorage.removeItem("token");
-            router.push("/login");
+            console.log('Unauthorized - Redirecting to login');
+            router.push("/login");  // Không xóa token khỏi localStorage
         }
         return Promise.reject(
             error.response ? error.response.data : new Error("Unexpected Error")
         );
     }
 );
+
 
 export default {
     // apiService.js
