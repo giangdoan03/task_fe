@@ -84,6 +84,8 @@
                 // Gọi API để lấy danh sách người dùng
                 const users = await apiService.getUsers();
                 this.users = users; // Lưu danh sách người dùng vào mảng users
+                console.log(this.users);
+                
             } catch (error) {
                 console.error("Lỗi khi tải danh sách người dùng:", error);
             }
